@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>test</title>
+    <style>
+        body {
+            background-color: #36393F;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            font-family: Arial, sans-serif;
+        }
+        .embed-generator {
+            margin-top: 20px;
+            background-color: #444444;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 600px;
+            position: relative;
+        }
+        .embed-generator label {
+            display: block;
+            margin-bottom: 5px;
+            color: white;
+        }
+        .embed-generator textarea, .embed-generator button {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            border: none;
+            background-color: #36393F;
+            color: white;
+            width: calc(100% - 22px); /* Adjust width to fit within the container */
+            box-sizing: border-box;  /* Ensure padding and border are included in width */
+            border-radius: 8px; /* Rounded corners for textarea */
+        }
+        .embed-generator textarea {
+            min-height: 60px;
+            resize: vertical;  /* Allow vertical resizing only */
+            overflow: auto; /* Ensure scrollbars appear when content overflows */
+        }
+        .embed-generator textarea::placeholder {
+            color: white;
+        }
+        .embed-generator textarea::-webkit-scrollbar {
+            width: 8px; /* Width of the scrollbar */
+        }
+        .embed-generator textarea::-webkit-scrollbar-track {
+            background: #2f3136; /* Background of the scrollbar track */
+            border-radius: 8px; /* Rounded corners for the scrollbar track */
+        }
+        .embed-generator textarea::-webkit-scrollbar-thumb {
+            background: #555; /* Color of the scrollbar handle */
+            border-radius: 8px; /* Rounded corners for the scrollbar handle */
+        }
+        .embed-generator textarea::-webkit-scrollbar-thumb:hover {
+            background: #777; /* Color of the scrollbar handle on hover */
+        }
+        .color-picker-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .color-picker-container input[type="color"] {
+            position: absolute;
+            width: 40px; /* Szerokość pola koloru */
+            height: 40px; /* Wysokość pola koloru */
+            opacity: 0; /* Ustawienie przezroczystości na 0, aby było niewidoczne */
+            cursor: pointer; /* Ustawienie kursora na wskazujący */
+        }
+        .color-picker-container .color-display {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #7289DA;
+            border: 2px solid #000;
+            cursor: pointer;
+        }
+        .button-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .language-picker-container {
+            position: relative;
+        }
+        .language-picker-button {
+            display: block;
+            padding: 10px;
+            background-color: #36393F;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 0;
+            cursor: pointer;
+            text-align: left;
+            width: 200px;
+        }
+        .language-picker-button span {
+            float: right;
+        }
+        .language-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: #36393F;
+            border: 1px solid #444;
+            border-radius: 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .language-menu div {
+            padding: 10px;
+            cursor: pointer;
+            color: white;
+        }
+        .language-menu div:hover {
+            background-color: #555;
+        }
+        .embed-generator button {
+            background-color: #36393F;
+            color: white;
+            cursor: pointer;
+            border-radius: 0;
+            border: 1px solid #444;
+        }
+        .embed-generator button:hover {
+            background-color: #555;
+        }
+        .embed-output-container {
+            display: flex;
+            background-color: #2f3136;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+            color: #FFFFFF;
+            position: relative; /* To position the copy text */
+        }
+        .line-numbers {
+            text-align: right;
+            padding-right: 10px;
+            margin-right: 10px;
+            border-right: 1px solid #444;
+            color: #aaa;
+        }
+        .embed-output {
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            flex: 1;
+        }
+        .language-label {
+            color: white;
+            font-size: 12px;
+            text-align: right;
+            display: block;
+            visibility: hidden;
+        }
+        .copy-container {
+            display: flex;
+            align-items: center;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        .copy-container img {
+            width: 16px;
+            height: 16px;
+            margin-right: 5px;
+        }
+        .copy-text {
+            color: #aaa;
+            font-size: 12px;
+            text-decoration: underline;
+        }
+        .copy-text.copied {
+            color: #7289DA;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="embed-generator">
+        <label for="title">Title:</label>
+        <textarea id="title" placeholder="Enter title"></textarea>
+
+        <label for="description">Description:</label>
+        <textarea id="description" placeholder="Enter description"></textarea>
+
+        <label for="color">Color:</label>
+        <div class="color-picker-container">
+            <input type="color" id="color" value="#7289DA">
+            <div class="color-display"></div>
+        </div>
+
+        <div class="button-container">
+            <button onclick="generateEmbed()">Generate Embed</button>
+            <div class="language-picker-container">
+                <button class="language-picker-button" id="language-button">Change Language <span>▼</span></button>
+                <div class="language-menu" id="language-menu">
+                    <div data-lang="discord.js">Discord.js</div>
+                    <div data-lang="node.js">Node.js</div>
+                    <div data-lang="python">Python</div>
+                    <div data-lang="java">Java</div>
+                    <div data-lang="ruby">Ruby</div>
+                    <div data-lang="csharp">C#</div>
+                    <div data-lang="lua">Lua</div>
+                    <div data-lang="dbm">Discord Bot Maker (DBM)</div>
+                    <div data-lang="go">Go</div>
+                    <div data-lang="rust">Rust</div>
+                    <div data-lang="php">PHP</div>
+                    <div data-lang="kotlin">Kotlin</div>
+                    <div data-lang="typescript">TypeScript</div>
+                    <div data-lang="cpp">C++</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="embed-output-container">
+            <div class="line-numbers" id="line-numbers"></div>
+            <div class="embed-output" id="embed-output"></div>
+            <div class="copy-container" onclick="copyEmbed()">
+                <img src="copy.png" alt="Copy">
+                <span class="copy-text" id="copy-text">Copy</span>
+            </div>
+        </div>
+
+        <span class="language-label" id="language-label"></span>
+    </div>
+
+    <script>
+        let selectedLanguage = 'discord.js';
+
+        function generateEmbed() {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const color = document.getElementById('color').value;
+
+            const colorHex = parseInt(color.replace('#', ''), 16);
+
+            let embedCode = '';
+
+            if (selectedLanguage === 'node.js') {
+                embedCode = `
+const embed = {
+    embeds: [
+        {
+            title: "${title}",
+            description: "${description}",
+            color: ${colorHex}
+        }
+    ]
+};
+                `;
+            } else if (selectedLanguage === 'python') {
+                embedCode = `
+embed = {
+    'embeds': [
+        {
+            'title': "${title}",
+            'description': "${description}",
+            'color': ${colorHex}
+        }
+    ]
+}
+                `;
+            } else if (selectedLanguage === 'java') {
+                embedCode = `
+EmbedBuilder embed = new EmbedBuilder();
+embed.setTitle("${title}");
+embed.setDescription("${description}");
+embed.setColor(${colorHex});
+                `;
+            } else if (selectedLanguage === 'ruby') {
+                embedCode = `
+embed = Discordrb::Webhooks::Embed.new
+embed.title = "${title}"
+embed.description = "${description}"
+embed.color = ${colorHex}
+                `;
+            } else if (selectedLanguage === 'csharp') {
+                embedCode = `
+var embed = new EmbedBuilder()
+    .WithTitle("${title}")
+    .WithDescription("${description}")
+    .WithColor(${colorHex});
+                `;
+            } else if (selectedLanguage === 'lua') {
+                embedCode = `
+local embed = {
+    title = "${title}",
+    description = "${description}",
+    color = ${colorHex}
+}
+                `;
+            } else if (selectedLanguage === 'dbm') {
+                embedCode = `
+{
+    "title": "${title}",
+    "description": "${description}",
+    "color": "${color}"
+}
+                `;
+            } else if (selectedLanguage === 'go') {
+                embedCode = `
+embed := &discordgo.MessageEmbed{
+    Title:       "${title}",
+    Description: "${description}",
+    Color:       ${colorHex},
+}
+                `;
+            } else if (selectedLanguage === 'rust') {
+                embedCode = `
+let embed = EmbedBuilder::new()
+    .title("${title}")
+    .description("${description}")
+    .color(${colorHex});
+                `;
+            } else if (selectedLanguage === 'php') {
+                embedCode = `
+$embed = [
+    "embeds" => [
+        [
+            "title" => "${title}",
+            "description" => "${description}",
+            "color" => ${colorHex}
+        ]
+    ]
+];
+                `;
+            } else if (selectedLanguage === 'kotlin') {
+                embedCode = `
+val embed = EmbedBuilder()
+    .setTitle("${title}")
+    .setDescription("${description}")
+    .setColor(${colorHex})
+                `;
+            } else if (selectedLanguage === 'typescript') {
+                embedCode = `
+const embed = {
+    embeds: [
+        {
+            title: "${title}",
+            description: "${description}",
+            color: ${colorHex}
+        }
+    ]
+};
+                `;
+            } else if (selectedLanguage === 'cpp') {
+                embedCode = `
+EmbedBuilder embed;
+embed.setTitle("${title}");
+embed.setDescription("${description}");
+embed.setColor(${colorHex});
+                `;
+            } else {
+                embedCode = `
+const embed = {
+    embeds: [
+        {
+            title: "${title}",
+            description: "${description}",
+            color: ${colorHex}
+        }
+    ]
+};
+                `;
+            }
+
+            const embedOutputElement = document.getElementById('embed-output');
+            const lineNumbersElement = document.getElementById('line-numbers');
+            const embedLines = embedCode.trim().split('\n');
+
+            embedOutputElement.textContent = embedCode.trim();
+
+            lineNumbersElement.innerHTML = embedLines
+                .map((_, index) => `<div>${index + 1}</div>`)
+                .join('');
+        }
+
+        function copyEmbed() {
+            const embedOutput = document.getElementById('embed-output');
+            const copyTextElement = document.getElementById('copy-text');
+
+            const range = document.createRange();
+            range.selectNode(embedOutput);
+            window.getSelection().removeAllRanges(); // Clear any existing selection
+            window.getSelection().addRange(range); // Select the embed code
+            document.execCommand('copy'); // Copy the selected content
+            window.getSelection().removeAllRanges(); // Deselect the content
+
+            copyTextElement.textContent = 'Copied!'; // Change the text to "Copied!"
+            copyTextElement.classList.add('copied'); // Add a class for styling
+
+            setTimeout(() => {
+                copyTextElement.textContent = 'Copy'; // Revert the text back to "Copy"
+                copyTextElement.classList.remove('copied'); // Remove the styling class
+            }, 2000); // Change back after 2 seconds
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const languageMenu = document.getElementById('language-menu');
+            const languageButton = document.getElementById('language-button');
+            const languageLabel = document.getElementById('language-label');
+
+            document.querySelector('.color-display').addEventListener('click', function() {
+                document.getElementById('color').click();
+            });
+
+            document.getElementById('color').addEventListener('input', function(event) {
+                document.querySelector('.color-display').style.backgroundColor = event.target.value;
+            });
+
+            languageButton.addEventListener('click', function(event) {
+                event.stopPropagation();
+                const arrow = languageButton.querySelector('span');
+                languageMenu.style.display = languageMenu.style.display === 'none' ? 'block' : 'none';
+                arrow.textContent = languageMenu.style.display === 'none' ? '▼' : '▲';
+            });
+
+            languageMenu.addEventListener('click', function(event) {
+                selectedLanguage = event.target.getAttribute('data-lang');
+                languageLabel.textContent = selectedLanguage;
+                languageLabel.style.visibility = 'visible';
+                languageMenu.style.display = 'none';
+                generateEmbed();
+
+                languageButton.querySelector('span').textContent = '▼';
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!languageMenu.contains(event.target) && !languageButton.contains(event.target)) {
+                    languageMenu.style.display = 'none';
+                    languageButton.querySelector('span').textContent = '▼';
+                }
+            });
+
+            generateEmbed();
+        });
+    </script>
+</body>
+</html>
